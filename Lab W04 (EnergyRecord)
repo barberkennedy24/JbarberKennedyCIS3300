@@ -1,0 +1,41 @@
+package appliances;
+
+import java.time.LocalDate;
+
+public class EnergyRecord {
+    private int homeID;
+    private LocalDate date;
+    private String appliance;
+    private String room;
+    private int watts;
+    private double hoursPerDay;
+    private boolean smartDevice;
+    
+    
+    public EnergyRecord(int homeID, LocalDate date, String appliance, String room, 
+                       int watts, double hoursPerDay, boolean smartDevice) {
+        setHomeID(homeID);
+        setDate(date);
+        setAppliance(appliance);
+        setRoom(room);
+        setWatts(watts);
+        setHoursPerDay(hoursPerDay);
+        setSmartDevice(smartDevice);
+    }
+    
+    public int getHomeID() { return homeID; }
+    public LocalDate getDate() { return date; }
+    public String getAppliance() { return appliance; }
+    public String getRoom() { return room; }
+    public int getWatts() { return watts; }
+    public double getHoursPerDay() { return hoursPerDay; }
+    public boolean isSmartDevice() { return smartDevice; }
+    
+    public void setHomeID(int homeID) { this.homeID = homeID; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public void setAppliance(String appliance) { this.appliance = appliance; }
+    public void setRoom(String room) { this.room = room; }
+    public void setWatts(int watts) { this.watts = watts; }
+    public void setHoursPerDay(double hoursPerDay) { this.hoursPerDay = hoursPerDay; }
+    public void setSmartDevice(boolean smartDevice) { this.smartDevice = smartDevice; }
+}
