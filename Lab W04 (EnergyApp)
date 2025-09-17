@@ -1,0 +1,129 @@
+package energy;
+
+import appliances.EnergyRecord;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+
+public class EnergyApp {
+    
+        public static void main(String[] args) {
+        String inputFilename = (args.length > 0) ? args[0] : "energy_usage.csv";
+        String outputFilename = (args.length > 1) ? args[1] : "energy_output.json";
+        
+        System.out.println("Looking for input file: " + inputFilename);
+        System.out.println("Will create output file: " + outputFilename);
+        
+        ArrayList<EnergyRecord> energyRecords = new ArrayList<>();
+        
+        String[] headings = new String[0];
+        
+        try {
+            headings = inputRecords(inputFilename, energyRecords);
+            
+            outputRecords(outputFilename, energyRecords, headings);
+            
+            System.out.println("Conversion completed successfully!");
+            System.out.println("Records processed: " + energyRecords.size());
+            
+        } catch (Exception e) {
+            System.err.println("Error processing files: " + e.getMessage());
+            System.out.println("\nTroubleshooting tips:");
+            System.out.println("1. Make sure your CSV file is in the same directory as your Java files");
+            System.out.println("2. Or specify the full path to your file as a command line argument");
+            System.out.println("3. Example: java energy.EnergyApp C:/path/to/your/file.csv");
+        }
+    }
+    
+        public static String[] inputRecords(String filename, ArrayList<EnergyRecord> records) {
+        String[] headings = new String[0];
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String headerLine = reader.readLine();
+            if (headerLine != null) {
+                headings = headerLine.split(",");
+                System.out.println("Found columns: " + String.join(", ", headings));
+            }
+            
+            String line;
+            int lineCount = 0;
+            while ((line = reader.readLine()) != null) {
+                lineCount++;
+                String[] nextLine = line.split(",");
+                
+                if (nextLine.length < 7) {
+                    System.err.println("Skipping invalid line " + lineCount + ": " + line);
+                    continue;
+                }
+                
+                try {
+                    int homeID = Integer.parseInt(nextLine[0].trim());
+                    LocalDate date = LocalDate.parse(nextLine[1].trim());
+                    String appliance = nextLine[2].trim();
+                    String room = nextLine[3].trim();
+                    int watts = Integer.parseInt(nextLine[4].trim());
+                    double hoursPerDay = Double.parseDouble(nextLine[5].trim());
+                    boolean smartDevice = Boolean.parseBoolean(nextLine[6].trim());
+                    
+                    // Create and add new EnergyRecord
+                    EnergyRecord record = new EnergyRecord(homeID, date, appliance, room, 
+                                                         watts, hoursPerDay, smartDevice);
+                    records.add(record);
+                } catch (Exception e) {
+                    System.err.println("Error parsing line " + lineCount + ": " + line);
+                    System.err.println("Error details: " + e.getMessage());
+                }
+            }
+            
+            System.out.println("Successfully read " + records.size() + " valid records");
+            
+        } catch (IOException e) {
+            System.err.println("Error reading CSV file: " + e.getMessage());
+            System.out.println("Current working directory: " + System.getProperty("user.dir"));
+        }
+        
+        return headings;
+    }
+    
+        public static void outputRecords(String filename, ArrayList<EnergyRecord> records, 
+                                   String[] headings) {
+        if (records.isEmpty()) {
+            System.err.println("No records to export!");
+            return;
+        }
+        
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("[\n");
+        
+        for (int i = 0; i < records.size(); i++) {
+            EnergyRecord record = records.get(i);
+            
+            jsonBuilder.append("  {\n");
+            jsonBuilder.append("    \"").append(headings[0]).append("\": ").append(record.getHomeID()).append(",\n");
+            jsonBuilder.append("    \"").append(headings[1]).append("\": \"").append(record.getDate()).append("\",\n");
+            jsonBuilder.append("    \"").append(headings[2]).append("\": \"").append(record.getAppliance()).append("\",\n");
+            jsonBuilder.append("    \"").append(headings[3]).append("\": \"").append(record.getRoom()).append("\",\n");
+            jsonBuilder.append("    \"").append(headings[4]).append("\": ").append(record.getWatts()).append(",\n");
+            jsonBuilder.append("    \"").append(headings[5]).append("\": ").append(record.getHoursPerDay()).append(",\n");
+            jsonBuilder.append("    \"").append(headings[6]).append("\": ").append(record.isSmartDevice()).append("\n");
+            
+            if (i < records.size() - 1) {
+                jsonBuilder.append("  },\n");
+            } else {
+                jsonBuilder.append("  }\n");
+            }
+        }
+        
+        jsonBuilder.append("]");
+        
+        try (FileWriter file = new FileWriter(filename)) {
+            file.write(jsonBuilder.toString());
+            System.out.println("Successfully created JSON file: " + filename);
+        } catch (IOException e) {
+            System.err.println("Error writing JSON file: " + e.getMessage());
+        }
+    }
+}
