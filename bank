@@ -1,0 +1,67 @@
+package bank;
+
+import java.util.ArrayList;
+
+public class Bank {
+    private ArrayList<Account> accounts;
+
+    public Bank() {
+        accounts = new ArrayList<>();
+    }
+
+    public void addAccount(Account account) {
+        accounts.add(account);
+    }
+
+    public void printAccounts() {
+        System.out.println("-----------------------------------------------");
+        for (Account acct : accounts) {
+            acct.print();
+        }
+    }
+
+    private Account findAccount(String acctNum) {
+        if (acctNum == null) return null;
+        for (Account a : accounts) {
+            if (a.getAccountNumber().equals(acctNum)) return a;
+        }
+        return null;
+    }
+
+    public void processTransaction(Transaction t) {
+        String type = (t.getType() == null) ? "" : t.getType().toLowerCase();
+        double amount = t.getAmount();
+
+        switch (type) {
+            case "deposit": {
+                Account target = findAccount(t.getTargetAccount());
+                if (target != null) target.deposit(amount);
+                else System.err.println("Deposit failed - target account not found: " + t.getTargetAccount());
+                break;
+            }
+            case "withdraw": {
+                Account target = findAccount(t.getTargetAccount());
+                if (target != null) target.withdraw(amount);
+                else System.err.println("Withdraw failed - target account not found: " + t.getTargetAccount());
+                break;
+            }
+            case "transfer": {
+                Account source = findAccount(t.getSourceAccount());
+                Account target = findAccount(t.getTargetAccount());
+                if (source == null) {
+                    System.err.println("Transfer failed - source account not found: " + t.getSourceAccount());
+                }
+                if (target == null) {
+                    System.err.println("Transfer failed - target account not found: " + t.getTargetAccount());
+                }
+                if (source != null && target != null) {
+                    source.withdraw(amount);
+                    target.deposit(amount);
+                }
+                break;
+            }
+            default:
+                System.err.println("Unknown transaction type: " + t.getType());
+        }
+    }
+}
